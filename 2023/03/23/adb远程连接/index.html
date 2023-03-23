@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.14.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="简介adb是安卓开发者常用的调试手段，通常来说开发者通过usb数据线连接PC和设备，然后开启开发者模式就可以打开shell开始调试了，但是总有一些情况需要远程调试（比如疫情被困在家）。这里介绍两种远程adb的方法。 方法一：adb connectadb自己提供一种远程连接的方法，那就是adb connect。开发者可以使用adb connect ip:port的方式连接到一个远程安卓设备上，具体使">
+<meta property="og:type" content="article">
+<meta property="og:title" content="adb远程连接">
+<meta property="og:url" content="http://example.com/2023/03/23/adb%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5/index.html">
+<meta property="og:site_name" content="XiaoYe&#39;s Blog">
+<meta property="og:description" content="简介adb是安卓开发者常用的调试手段，通常来说开发者通过usb数据线连接PC和设备，然后开启开发者模式就可以打开shell开始调试了，但是总有一些情况需要远程调试（比如疫情被困在家）。这里介绍两种远程adb的方法。 方法一：adb connectadb自己提供一种远程连接的方法，那就是adb connect。开发者可以使用adb connect ip:port的方式连接到一个远程安卓设备上，具体使">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202303231922207.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202303231924839.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202303232100646.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202303231958039.png">
+<meta property="article:published_time" content="2023-03-23T11:21:35.000Z">
+<meta property="article:modified_time" content="2023-03-23T13:02:25.766Z">
+<meta property="article:author" content="route">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202303231922207.png">
+
+
+<link rel="canonical" href="http://example.com/2023/03/23/adb%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2023/03/23/adb%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5/","path":"2023/03/23/adb远程连接/","title":"adb远程连接"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>adb远程连接 | XiaoYe's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">XiaoYe's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9Aadb-connect"><span class="nav-number">2.</span> <span class="nav-text">方法一：adb connect</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E4%BA%8C-%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91"><span class="nav-number">3.</span> <span class="nav-text">方法二 端口转发</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">4.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">route</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/03/23/adb%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="route">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="XiaoYe's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="adb远程连接 | XiaoYe's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          adb远程连接
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-03-23 19:21:35 / 修改时间：21:02:25" itemprop="dateCreated datePublished" datetime="2023-03-23T19:21:35+08:00">2023-03-23</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>adb是安卓开发者常用的调试手段，通常来说开发者通过<strong>usb数据线</strong>连接PC和设备，然后开启开发者模式就可以打开shell开始调试了，但是总有一些情况需要<strong>远程调试</strong>（比如疫情被困在家）。这里介绍两种远程adb的方法。</p>
+<h1 id="方法一：adb-connect"><a href="#方法一：adb-connect" class="headerlink" title="方法一：adb connect"></a>方法一：adb connect</h1><p>adb自己提供一种远程连接的方法，那就是adb connect。开发者可以使用adb connect ip:port的方式连接到一个远程安卓设备上，具体使用方法如下：</p>
+<p><code>adb shell</code></p>
+<p><code>su</code></p>
+<p><code>mount -o rw,remount /system</code>&#x2F;挂载系统分区</p>
+<p><code>echo &quot;service.adb.tcp.port=5555&quot; &gt;&gt; /system/build.prop</code> &#x2F;&#x2F;设置5555端口为adb端口</p>
+<p><code>adb reboot //重启</code></p>
+<p>然后远端就PC就可以通过IP:port连接到该手机，具体指令为：</p>
+<p><code>adb connect IP:port</code></p>
+<p>一次实际操作如下图所示，手机端：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202303231922207.png" alt="image-20230323192156121"></p>
+<p>远端PC：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202303231924839.png" alt="image-20230323192454811"></p>
+<p>我们可以看到，这种方式有两点要求：</p>
+<p>1.手机root以添加永久的adb无线调试端口，（否则会报错，因为 &#x2F;system&#x2F;build.prop是个只读文件）</p>
+<p>2.手机和远端PC处在同一个子网下，换句话说，二者要ping的通，否则connect根本找不到对应ip</p>
+<h1 id="方法二-端口转发"><a href="#方法二-端口转发" class="headerlink" title="方法二 端口转发"></a>方法二 端口转发</h1><p>第二种方法是端口转发，成功后可以直接像在本地PC一样操作adb。这种方法需要先了解一下adb的原理。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202303232100646.png" alt="adb原理.drawio"></p>
+<p>如上图所示，adb调试由三部分组成，分别为安卓设备上的deamon、本地PC的client和server。其中server负责查询连接到本地的可调试设备有哪些，通常占用5037端口，client负责输入命令。而我们只需要将本地的5037端口转发到远端PC的5037端口去（红线部分），那么就可以在远端PC实现adb命令。</p>
+<p>具体实践如下图，我使用tabby terminal可以一键端口转发</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202303231958039.png" alt="image-20230323195839010"></p>
+<p>需要注意的是，这里远端PC必须adb kill-server，因为要保证远端的5037端口不被占用。方法二相比于方法一的好处是，在多台安卓设备时可以很方便的adb devices检索识别，而方法一需要苦哈哈的一个个找ip进行connect。但这仍然需要远端PC和本地PC ping的通，如果不在一个子网的话，还是得通过代理等方式先解决这个问题。</p>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p>[1] <a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_16548551/article/details/126510166">(23条消息) ADB远程桌面连接本地手机_adb远程连接手机_welsonx的博客-CSDN博客</a></p>
+<p>[2] <a target="_blank" rel="noopener" href="https://blog.csdn.net/q965844841qq/article/details/125201074">(23条消息) adb 连接安卓手机远程调试_adb远程连接手机_某呆啊的博客-CSDN博客</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/03/09/%E6%81%B6%E6%84%8F%E8%BD%AF%E4%BB%B6%E6%A3%80%E6%B5%8B%E4%B9%8B%E5%AE%89%E5%8D%93%E6%81%B6%E6%84%8F%E5%AE%B6%E6%97%8F%E5%88%86%E7%B1%BB/" rel="prev" title="恶意软件检测之安卓恶意家族分类">
+                  <i class="fa fa-chevron-left"></i> 恶意软件检测之安卓恶意家族分类
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">route</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
