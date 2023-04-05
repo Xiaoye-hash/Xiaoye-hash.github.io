@@ -112,7 +112,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -130,6 +130,108 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/04/05/chatgpt-academic%E9%83%A8%E7%BD%B2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="route">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="XiaoYe's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | XiaoYe's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/05/chatgpt-academic%E9%83%A8%E7%BD%B2/" class="post-title-link" itemprop="url">chatgpt_academic部署</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-05 14:40:12 / 修改时间：16:24:34" itemprop="dateCreated datePublished" datetime="2023-04-05T14:40:12+08:00">2023-04-05</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>最近chatgpt爆火，它的对话反馈能力不仅在一般的对话场景下强于它的前辈们，在一些专业领域（比如计算机），更是让业内人士都叹为观止。我身边已经有不少人用chatgpt去做代码漏洞审查，代码补全等（和copilot类似了）。在我看来，一些专业知识要求较高的问题chatgpt都能回答的比较完美，在某种程度下，它比百度google更好用。</p>
+<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>chatgpt_academic是github上一个开源项目，主要是基于openai提供的chatgpt api实现论文的一键润色、一键翻译等，还支持论文阅读一键总结，可以说是十分方便。体验下来，chatgpt的翻译水平比google免费翻译强，润色水平也比之前常用的deepl免费版要好，可以说是我们这些英语不好的人写英文论文的一大利器。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202304051524159.png" alt="image-20230405152418056"></p>
+<h1 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h1><p>chatgpt_academic是用 <code>gr</code> 模块创建的一个基于浏览器的GUI界面，所以我考虑部署到服务器上，并做部署记录。</p>
+<h2 id="项目下载"><a href="#项目下载" class="headerlink" title="项目下载"></a>项目下载</h2><p>直接</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/binary-husky/chatgpt_academic.git</span><br><span class="line">cd chatgpt_academic</span><br></pre></td></tr></table></figure>
+
+<h2 id="API-KEY配置与代理设置"><a href="#API-KEY配置与代理设置" class="headerlink" title="API_KEY配置与代理设置"></a>API_KEY配置与代理设置</h2><p>api_key需要从openai官网获取，在<a target="_blank" rel="noopener" href="https://platform.openai.com/account/api-keys%E7%94%9F%E6%88%90%E8%87%AA%E5%B7%B1%E7%9A%84%E7%A7%81%E4%BA%BA%E5%AF%86%E9%92%A5%E5%B9%B6%E5%A4%8D%E5%88%B6%E5%88%B0config.py%E5%8D%B3%E5%8F%AF%E3%80%82">https://platform.openai.com/account/api-keys生成自己的私人密钥并复制到config.py即可。</a></p>
+<p>代理我用的是clash，默认协议为http，需要注意的是</p>
+<pre><code> 1. 要开启允许局域网连接，否则服务器连不上
+ 2. 要关闭防火墙的网络defense，否则其他主机连不上
+</code></pre>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202304051558615.png" alt="image-20230405155839566"></p>
+<p>如上图，我们需要设置的proxy如下</p>
+<p>  proxies &#x3D; { </p>
+<p>​    #      [协议]:&#x2F;&#x2F;  [地址]  :[端口]</p>
+<p>​    “http”:  “<a target="_blank" rel="noopener" href="http://ip:7890/">http://ip:7890</a>“, </p>
+<p>​    “https”: “<a target="_blank" rel="noopener" href="http://ip:7890/">http://ip:7890</a>“, </p>
+<p>  }</p>
+<h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><p>瞄了一眼requirements.txt，包不多，所以我本来想直接在主环境安装依赖的，结果发现gradio&gt;&#x3D;3.23需要python3.7之后，而我的python3.6没这个版本，只好用conda去配一个新虚拟环境</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">conda create -n gptac_venv python=3.11</span><br><span class="line">conda activate gptac_venv</span><br><span class="line">python -m pip install -r requirements.txt</span><br></pre></td></tr></table></figure>
+
+<h2 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h2><p>服务器一般是不对外开放web端口的，所以我们需要指定端口并提前设置好开放，比如端口49499</p>
+<p>先在config.py里修改端口（否则是随机端口）</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202304051608031.png" alt="image-20230405160810001"></p>
+<p>然后防火墙开放该端口</p>
+<p><code>sudo iptables -A INPUT -p tcp --dport 49499 -j ACCEPT</code></p>
+<p><code>sudo service iptables save</code></p>
+<p>接下来就可以用http:&#x2F;&#x2F;服务器ip:49499 愉快使用学术chatgpt了</p>
+<h1 id="PS"><a href="#PS" class="headerlink" title="PS"></a>PS</h1><p>首先是一个注意点，chatgpt账户的api是有免费额度的，之前是18美元后来是5美元，大概够反馈100万个token的，后续gpt3.5收费是0.002刀&#x2F;1k token，所以要节省使用</p>
+<p>然后是一个有意思的地方。如果用vscode的terminal而不是正常shell运行上述代码，Web服务会直接在<strong>本机</strong>开启而不是服务器，换句话说，你执行了服务器的代码，但指定的server是本机。这就有点疑惑了，按理来说在vscode的terminal上执行远程服务器代码，走的一样的ssh，虽然lauch的是0.0.0.0，但应该和xshell这些没啥区别啊，疑惑.jpg</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p>[1] <a target="_blank" rel="noopener" href="https://github.com/binary-husky/chatgpt_academic">binary-husky&#x2F;chatgpt_academic: 科研工作专用ChatGPT拓展，特别优化学术Paper润色体验，支持自定义快捷按钮，支持自定义函数插件，支持markdown表格显示，Tex公式双显示，代码显示功能完善，新增本地Python&#x2F;C++&#x2F;Go项目树剖析功能&#x2F;项目源代码自译解能力，新增PDF和Word文献批量总结功能 (github.com)</a></p>
+<p>[2] <a target="_blank" rel="noopener" href="https://chatgpt.cn.obiscr.com/blog/posts/2023/How-to-get-api-key/">https://chatgpt.cn.obiscr.com/blog/posts/2023/How-to-get-api-key/</a></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
