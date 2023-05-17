@@ -112,7 +112,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-count">10</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -130,6 +130,117 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/05/16/%E6%81%B6%E6%84%8F%E8%BD%AF%E4%BB%B6%E6%A3%80%E6%B5%8B%E4%B9%8B%E9%AB%98%E6%95%88MonkeyTest/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="route">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="XiaoYe's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | XiaoYe's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/16/%E6%81%B6%E6%84%8F%E8%BD%AF%E4%BB%B6%E6%A3%80%E6%B5%8B%E4%B9%8B%E9%AB%98%E6%95%88MonkeyTest/" class="post-title-link" itemprop="url">恶意软件检测之高效MonkeyTest</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-16 11:11:37" itemprop="dateCreated datePublished" datetime="2023-05-16T11:11:37+08:00">2023-05-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-17 14:45:42" itemprop="dateModified" datetime="2023-05-17T14:45:42+08:00">2023-05-17</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>Monkey测试是Google开发的、安卓系统自带的自动化测试工具。正如其名，monkey工具会像猴子一样对手机屏幕“乱点一通”，随机触发<strong>点击、滑动、组件启</strong>动等事件。Monkey本来是用作应用压力测试的，但是近年来（也不是近年了，一直都是），几乎所有的<strong>动态恶意软件检测</strong>相关的论文用的自动化测试工具都是monkey（包括我正在做的，嘿嘿）。所以觉得有必要总结一下如何高效利用Monkey测试。</p>
+<h1 id="Monkey-Test命令"><a href="#Monkey-Test命令" class="headerlink" title="Monkey Test命令"></a>Monkey Test命令</h1><p>monkey的命令很简单，就是</p>
+<p><code>adb shell monkey + 一些参数</code></p>
+<p>我上网扒拉了一下相关的参数表，如下：</p>
+<p><img src="https://pic1.zhimg.com/v2-dd8e54ba4924e8d86e0c6ce723ef0a84_r.jpg" alt="img"></p>
+<p>比较有趣的是monkey通过–throttle指定测试频率（ms为单位），也可以指定随机事件数，并通过这俩参数控制整个Monkey测试的总时间（两个参数乘一下就行了），并没有直接的时间限制参数。而发送事件类型里的trackball在手机行业基本没人用了，所以这个事件类型在测试里也很少被用到，其他参数按需设置即可。</p>
+<h1 id="测试高效化"><a href="#测试高效化" class="headerlink" title="测试高效化"></a>测试高效化</h1><p>monkey测试仅仅是这些简单的命令吗？当然不是。通过adb monkey我们可以让手机生成随机触发事件了，但是，总有一些<strong>意外触发的事件</strong>会影响monkey测试的效率。比如某一次motion操作可能会下拉状态栏，那么接下来的所有touch操作都会按到状态栏上，好点的结果是无事发生，浪费一点时间，而比较糟糕的情况下，monkey会<strong>错误的关闭状态栏里的wifi、流量等必要设置</strong>，造成整个自动化测试的结果误差较大。这种<strong>意外事件</strong>首先影响测试效率，其次，无论测试者是在做<strong>压力测试</strong>还是<strong>动态恶意软件检测</strong>，都会影响其测试精确度。</p>
+<p>接下来总结一些测试过程中遇到的、使得Monkey测试高效化的trick：</p>
+<h2 id="禁用输入键盘"><a href="#禁用输入键盘" class="headerlink" title="禁用输入键盘"></a>禁用输入键盘</h2><p>输入键盘是影响Monkey测试效率的一点，一旦打开键盘，monkey的事件触发全部点到按键上，时间就全部浪费了。虽然有些事件确实要输入一些内容才能触发，但是考虑一般情况，还是禁用键盘为好。指令为：</p>
+<p><code>adb shell ime disable com.android.inputmethod.latin/.LatinIME</code></p>
+<h2 id="状态栏-导航栏隐藏"><a href="#状态栏-导航栏隐藏" class="headerlink" title="状态栏+导航栏隐藏"></a>状态栏+导航栏隐藏</h2><p>除了键盘，双栏——状态栏+导航栏也是</p>
+<p>一般来说可以通过adb命令 </p>
+<p><code>adb shell settings put global policy_control immersive.full=*</code> </p>
+<p>来隐藏导航栏+状态栏，但是后来发现 monkey test中的  <strong>–pct-motion</strong>（滑动操作）会重新唤起双栏，所以这个方法不太可行。后来转念一想，我直接<strong>让屏幕显示区域里没有双栏的位置</strong>不就行了吗？于是考虑以下命令：</p>
+<p><code>adb shell wm overscan //设置显示区域大小，坐标值为左、上、右、下</code></p>
+<p>当参数设置为 0,-210,0,-210 时可以永久隐藏双栏，0,0,0,0恢复，也就是说隐藏adb命令为：</p>
+<p><code>adb shell wm overscan  0,-210,0,-210</code></p>
+<p>经测试此方法有效</p>
+<h2 id="自动授权"><a href="#自动授权" class="headerlink" title="自动授权"></a>自动授权</h2><p>这个是比较重要的一环，因为安卓手机是经典的基于权限的系统，所以在大规模自动化测试时，每新安装一个app，刚打开时必定会弹权限请求窗口，如果不自动授权的话，会浪费很多时间。在pixel 3xl上我一共碰到过两种权限检查情况，第一种是最常见的：</p>
+<img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202305171414857.png" alt="0515 1" style="zoom: 67%;" />
+
+<p>第二种是要full control的（比较危险，但是自动化测试要的就是危险哈哈）</p>
+<img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202305171423641.png" alt="0515 3" style="zoom:67%;" />
+
+<p>那么怎么自动授权呢，一个很直观的方法是获取到“CONTINUE”和”ALLOW“按钮的位置，然后使用adb模拟点击该位置坐标即可。那么为了获取按钮坐标，可以dump出当前页面的Xml，然后从Xml中识别对应元素坐标。</p>
+<p>以”ALLOW“为例，使用命令</p>
+<p><code>adb shell &quot;uiautomator dump &amp;&amp; cat /sdcard/window_dump.xml&quot;</code></p>
+<p>将当前ui dump到window_dump.xml并读取，然后找到ALLOW按钮相关信息</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202305171435325.png" alt="image-20230517143559295"></p>
+<p>node里几个关键信息是text、resource-id（凭借这两个信息即可确定是allow的node），然后bounds变量给出了ALLOW按钮的左上和右下坐标信息。模拟按键只需要按这两个坐标的均值即可，比如对于这里的[93,2075]，[1347,2271]，中值坐标为[720,2173],输入命令</p>
+<p><code>adb shell input tap 720,2173</code></p>
+<p>即可顺利触发ALLOW按钮</p>
+<h2 id="版本警告"><a href="#版本警告" class="headerlink" title="版本警告"></a>版本警告</h2><p>压力测试可能不需要，但是动态恶意软件检测可能需要测试年份比较老的app，这些app的版本很旧，在比较新的安卓版本下可能会有如下警告信息：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202305171444013.PNG" alt="0515 2"></p>
+<p>这里的话和上面的<strong>自动授权</strong>一样，读取XML并模拟点击一次即可。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/525398215">Monkey 命令基本参数详解 - 知乎 (zhihu.com)</a></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
