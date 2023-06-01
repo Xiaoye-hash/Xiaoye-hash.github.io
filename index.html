@@ -112,7 +112,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-count">11</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -130,6 +130,91 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/01/LLM-%E4%BB%A3%E7%A0%81bug%E4%BF%AE%E5%A4%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="route">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="XiaoYe's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | XiaoYe's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/01/LLM-%E4%BB%A3%E7%A0%81bug%E4%BF%AE%E5%A4%8D/" class="post-title-link" itemprop="url">LLM-代码bug修复</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-06-01 16:04:14 / 修改时间：17:12:30" itemprop="dateCreated datePublished" datetime="2023-06-01T16:04:14+08:00">2023-06-01</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>最近熬夜听了听IEEE S&amp;P的会议，其中一篇关于用LLM（Large Language Model)做bug修复的比较有意思，记录一下。</p>
+<p>大语言模型（LLM）相信大家都不陌生了，最近非常火的chatGPT就是LLM的代表，这玩意儿号称什么都能干，在各大商用LLM的发布会上，demo都少不了写代码等专业性比较强的活，今天要介绍的这篇发表在S&amp;P 23上的文章《Examining Zero-Shot Vulnerability Repair with Large Language Models》做了这么一件事：之前的工作证明LLM可以很好的生成代码，那么修bug的能力怎么样呢？来评估一下</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202306011628284.png" alt="1234"></p>
+<p>（这个老哥语速巨快，勉强听得懂在讲啥）</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202306011630140.png" alt="image-20230601163045106"></p>
+<h1 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h1><p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202306011632301.png" alt="image-20230601163257269"></p>
+<p>这篇文章的方法论也是相当简单，因为针对的是黑盒的LLM模型，好像也没有什么高深的技术去搞。</p>
+<p>首先收集一批有bug的程序，然后根据经验建立一个prompt模板池（prompt就是和LLM交互用的，我们的提问就是prompt），输入黑盒的LLM模型中得到修改后的程序，并经过测试验证该程序的bug是否被修复。</p>
+<p>作者的贡献点主要在于多个黑盒LLM的measurement，除了一些商用模型，作者自己还搭了一个本地模型gpt2-csrc</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202306011652717.png" alt="image-20230601165202679"></p>
+<p>这里介绍一个比较有趣的（和其他AI模型做measurement不一样的）点。</p>
+<p>LLM比较有特色的是，<strong>存在token的限制</strong>，token在英语里指一个短语。也就是说向LLM提问的输入size是存在限制的。这样的限制对于几十行几百行的程序也许没什么影响，但是对于几千行的bug程序就有问题了——输不进去。作者的处理方式是<strong>部分输入</strong>与<strong>输出修复</strong>：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202306011712965.png" alt="1234"></p>
+<p>部分输入：作者只选取开头的#define以及有bug的函数作为输入，删除其他的程序代码，如果size还是超标，那就从上到下一行一行删代码，直到size合格为止</p>
+<p>输出修复：部分输入的后果就是：LLM给出的修复程序也是不全的，作者的应对方法是进行代码匹配，一旦匹配到30个字母一样就说明匹配到了相同代码段，将修复程序插入到原程序相应位置即可。如果没有就依次减少匹配字母阈值，如果少于5个字母匹配到，就直接将修复程序插入到bug程序出Bug的位置</p>
+<h1 id="Take-Away"><a href="#Take-Away" class="headerlink" title="Take Away"></a>Take Away</h1><p>最近LLM火爆潮流带来的结果是，arxiv上的LLM相关文章激增。但是搜了一下四大上的相关文章目前只有两篇，一篇是发表在USENIX 21 上的关于偷训练数据的《Extracting Training Data from Large Language Models》，第二篇就是本文了。综合来看目前对LLM的安全性研究还不是很深入，方法也比较naive（其实主要原因是LLM这玩意是黑盒的，就像USENIX 22 那篇研究Github copilot安全性的文章，没什么创新，但是热点摆在那，黑盒的也只能硬测，我也想不到有啥好办法，希望未来能看到大佬们出一些exciting的方法），在可以预见的未来，相关的安全性研究文章数量会有很大提升。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1132,117 +1217,9 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2023/02/12/%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E4%B8%8E%E8%AE%BF%E9%97%AE%E5%AE%9E%E8%B7%B5%E2%80%94%E2%80%94NFS/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="route">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="XiaoYe's Blog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | XiaoYe's Blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/02/12/%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E4%B8%8E%E8%AE%BF%E9%97%AE%E5%AE%9E%E8%B7%B5%E2%80%94%E2%80%94NFS/" class="post-title-link" itemprop="url">文件存储与访问实践——NFS</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-02-12 14:43:20" itemprop="dateCreated datePublished" datetime="2023-02-12T14:43:20+08:00">2023-02-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-02-18 15:21:29" itemprop="dateModified" datetime="2023-02-18T15:21:29+08:00">2023-02-18</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>目前网络存储技术与方式繁多，比如我所在的实验室就有NAS（黑群晖）的存储系统，有RAID管理起来的存储，同时也存在NFS、iSCSI两种存储共享协议。在服务器遭遇断电重启的时候需要的处理方式也不尽相同；我也想借这次机会实践一遍常见的存储挂载方式，与大家分享。</p>
-<h2 id="NFS"><a href="#NFS" class="headerlink" title="NFS"></a>NFS</h2><p>NFS是Network File System的缩写，即网络文件系统。NFS主要功能是通过局域网络让不同的主机系统之间可以共享文件或目录。</p>
-<p>NFS系统和Windows网络共享、网络驱动器类似, 只不过windows用于局域网, NFS用于企业集群架构中, 如果是大型网站, 会用到更复杂的分布式文件系统FastDFS,glusterfs,HDFS,ceph</p>
-<h2 id="挂载实践"><a href="#挂载实践" class="headerlink" title="挂载实践"></a>挂载实践</h2><h3 id="包安装"><a href="#包安装" class="headerlink" title="包安装"></a>包安装</h3><p>NFS分为服务端和客户端，各需要安装包，如果你是apt做包管理，使用如下命令安装：</p>
-<p>服务端：</p>
-<p><code>sudo apt install  nfs-kernel-server</code></p>
-<p>客户端：</p>
-<p><code>sudo apt install nfs-common</code></p>
-<p>如果是yum做包管理，使用如下命令安装：</p>
-<p>服务端和客户端：</p>
-<p><code>yum install -y nfs-utils</code></p>
-<h3 id="虚拟机实践"><a href="#虚拟机实践" class="headerlink" title="虚拟机实践"></a>虚拟机实践</h3><p>在两台虚拟机上做测试</p>
-<p>nfs服务器：192.168.183.130</p>
-<p>nfs客户端：182.168.183.129</p>
-<p>共享文件：&#x2F;data&#x2F;test</p>
-<h4 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h4><p>修改服务器的&#x2F;etc&#x2F;exports</p>
-<p>命令：</p>
-<p><code>sudo vim /etc/exports</code></p>
-<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131428851.png" alt="img"></p>
-<p>可用如下命令重启nfs服务并查看共享情况</p>
-<p>  <code>sudo service rpcbind restart</code></p>
-<p>  <code>sudo service nfs-kernel-server restart</code></p>
-<p>  <code>showmount -e</code></p>
-<h4 id="客户端："><a href="#客户端：" class="headerlink" title="客户端："></a>客户端：</h4><p>创建挂载文件夹，进行挂载</p>
-<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131431823.png" alt="img"></p>
-<p>查看文件系统</p>
-<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131431813.png" alt="img"></p>
-<p>挂载成功，nfs服务器重启的话，不需要重新配置服务器，但是客户端这边需要重新挂载到对应文件夹</p>
-<h4 id="服务端配置修改"><a href="#服务端配置修改" class="headerlink" title="服务端配置修改"></a>服务端配置修改</h4><p>如果添加服务端的共享文件配置，并重启nfs服务的话，会影响之前在正常挂在的nfs服务端，此时需要命令：</p>
-<p><code>exportfs -arv  //不用重启nfs服务的同时可以刷新nfs的配置文件</code> </p>
-<p>测试：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131432558.png" alt="img"></p>
-<p><img src="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131432558.png" alt="img"></p>
-<p>可见服务器实时修改了nfs配置（右侧），客户端（左侧）的挂载不受影响</p>
-<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/451820450">NFS（局域网共享文件或者目录） - 知乎 (zhihu.com)</a></p>
-<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_38138879/article/details/117111578">(23条消息) ubuntu安装nfs(通过apt命令安装最新版本)_huangrusheng_23的博客-CSDN博客_apt安装nfs</a></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+  </nav>
 
 </div>
   </main>

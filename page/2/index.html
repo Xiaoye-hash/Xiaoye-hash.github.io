@@ -19,33 +19,23 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.14.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="前言目前网络存储技术与方式繁多，比如我所在的实验室就有NAS（黑群晖）的存储系统，有RAID管理起来的存储，同时也存在NFS、iSCSI两种存储共享协议。在服务器遭遇断电重启的时候需要的处理方式也不尽相同；我也想借这次机会实践一遍常见的存储挂载方式，与大家分享。 NFSNFS是Network File System的缩写，即网络文件系统。NFS主要功能是通过局域网络让不同的主机系统之间可以共享文件">
-<meta property="og:type" content="article">
-<meta property="og:title" content="文件存储与访问实践——NFS">
-<meta property="og:url" content="http://example.com/2023/02/12/%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E4%B8%8E%E8%AE%BF%E9%97%AE%E5%AE%9E%E8%B7%B5%E2%80%94%E2%80%94NFS/index.html">
+    <meta property="og:type" content="website">
+<meta property="og:title" content="XiaoYe&#39;s Blog">
+<meta property="og:url" content="http://example.com/page/2/index.html">
 <meta property="og:site_name" content="XiaoYe&#39;s Blog">
-<meta property="og:description" content="前言目前网络存储技术与方式繁多，比如我所在的实验室就有NAS（黑群晖）的存储系统，有RAID管理起来的存储，同时也存在NFS、iSCSI两种存储共享协议。在服务器遭遇断电重启的时候需要的处理方式也不尽相同；我也想借这次机会实践一遍常见的存储挂载方式，与大家分享。 NFSNFS是Network File System的缩写，即网络文件系统。NFS主要功能是通过局域网络让不同的主机系统之间可以共享文件">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131428851.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131431823.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131431813.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131432558.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131432558.png">
-<meta property="article:published_time" content="2023-02-12T06:43:20.000Z">
-<meta property="article:modified_time" content="2023-02-18T07:21:29.976Z">
 <meta property="article:author" content="route">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/Xiaoye-hash/blog-img/202302131428851.png">
 
 
-<link rel="canonical" href="http://example.com/2023/02/12/%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E4%B8%8E%E8%AE%BF%E9%97%AE%E5%AE%9E%E8%B7%B5%E2%80%94%E2%80%94NFS/">
+<link rel="canonical" href="http://example.com/page/2/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2023/02/12/%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E4%B8%8E%E8%AE%BF%E9%97%AE%E5%AE%9E%E8%B7%B5%E2%80%94%E2%80%94NFS/","path":"2023/02/12/文件存储与访问实践——NFS/","title":"文件存储与访问实践——NFS"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":true,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"page/2/index.html","title":""}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>文件存储与访问实践——NFS | XiaoYe's Blog</title>
+<title>XiaoYe's Blog</title>
   
 
 
@@ -75,7 +65,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <p class="site-title">XiaoYe's Blog</p>
+      <h1 class="site-title">XiaoYe's Blog</h1>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -97,7 +87,7 @@
   
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+    <div class="sidebar-inner sidebar-overview-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -110,7 +100,6 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NFS"><span class="nav-number">2.</span> <span class="nav-text">NFS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8C%82%E8%BD%BD%E5%AE%9E%E8%B7%B5"><span class="nav-number">3.</span> <span class="nav-text">挂载实践</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%85%E5%AE%89%E8%A3%85"><span class="nav-number">3.1.</span> <span class="nav-text">包安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%9E%E8%B7%B5"><span class="nav-number">3.2.</span> <span class="nav-text">虚拟机实践</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="nav-number">3.2.1.</span> <span class="nav-text">服务端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%EF%BC%9A"><span class="nav-number">3.2.2.</span> <span class="nav-text">客户端：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E9%85%8D%E7%BD%AE%E4%BF%AE%E6%94%B9"><span class="nav-number">3.2.3.</span> <span class="nav-text">服务端配置修改</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">4.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -140,17 +129,16 @@
 
     </div>
 
-    <div class="main-inner post posts-expand">
+    <div class="main-inner index posts-expand">
 
-
-  
+    
 
 
 <div class="post-block">
   
   
 
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="http://example.com/2023/02/12/%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E4%B8%8E%E8%AE%BF%E9%97%AE%E5%AE%9E%E8%B7%B5%E2%80%94%E2%80%94NFS/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -164,13 +152,13 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="文件存储与访问实践——NFS | XiaoYe's Blog">
+      <meta itemprop="name" content="undefined | XiaoYe's Blog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          文件存储与访问实践——NFS
-        </h1>
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/02/12/%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E4%B8%8E%E8%AE%BF%E9%97%AE%E5%AE%9E%E8%B7%B5%E2%80%94%E2%80%94NFS/" class="post-title-link" itemprop="url">文件存储与访问实践——NFS</a>
+        </h2>
 
         <div class="post-meta-container">
           <div class="post-meta">
@@ -200,7 +188,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>目前网络存储技术与方式繁多，比如我所在的实验室就有NAS（黑群晖）的存储系统，有RAID管理起来的存储，同时也存在NFS、iSCSI两种存储共享协议。在服务器遭遇断电重启的时候需要的处理方式也不尽相同；我也想借这次机会实践一遍常见的存储挂载方式，与大家分享。</p>
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>目前网络存储技术与方式繁多，比如我所在的实验室就有NAS（黑群晖）的存储系统，有RAID管理起来的存储，同时也存在NFS、iSCSI两种存储共享协议。在服务器遭遇断电重启的时候需要的处理方式也不尽相同；我也想借这次机会实践一遍常见的存储挂载方式，与大家分享。</p>
 <h2 id="NFS"><a href="#NFS" class="headerlink" title="NFS"></a>NFS</h2><p>NFS是Network File System的缩写，即网络文件系统。NFS主要功能是通过局域网络让不同的主机系统之间可以共享文件或目录。</p>
 <p>NFS系统和Windows网络共享、网络驱动器类似, 只不过windows用于局域网, NFS用于企业集群架构中, 如果是大型网站, 会用到更复杂的分布式文件系统FastDFS,glusterfs,HDFS,ceph</p>
 <h2 id="挂载实践"><a href="#挂载实践" class="headerlink" title="挂载实践"></a>挂载实践</h2><h3 id="包安装"><a href="#包安装" class="headerlink" title="包安装"></a>包安装</h3><p>NFS分为服务端和客户端，各需要安装包，如果你是apt做包管理，使用如下命令安装：</p>
@@ -237,6 +225,7 @@
 <h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/451820450">NFS（局域网共享文件或者目录） - 知乎 (zhihu.com)</a></p>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_38138879/article/details/117111578">(23条消息) ubuntu安装nfs(通过apt命令安装最新版本)_huangrusheng_23的博客-CSDN博客_apt安装nfs</a></p>
 
+      
     </div>
 
     
@@ -244,18 +233,8 @@
     
 
     <footer class="post-footer">
-
-        
-
-          <div class="post-nav">
-            <div class="post-nav-item">
-            </div>
-            <div class="post-nav-item">
-                <a href="/2023/02/18/%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E4%B8%8E%E8%AE%BF%E9%97%AE%E5%AE%9E%E8%B7%B5%E2%80%94%E2%80%94iSCSI/" rel="next" title="文件存储与访问实践——iSCSI">
-                  文件存储与访问实践——iSCSI <i class="fa fa-chevron-right"></i>
-                </a>
-            </div>
-          </div>
+        <div class="post-eof"></div>
+      
     </footer>
   </article>
 </div>
@@ -263,7 +242,9 @@
 
 
 
-
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+  </nav>
 
 </div>
   </main>
